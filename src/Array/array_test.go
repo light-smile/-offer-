@@ -2,6 +2,7 @@ package Array
 
 import (
 	"fmt"
+	"github.com/stretchr/testify/assert"
 	"testing"
 )
 
@@ -181,4 +182,164 @@ func ShortestSum(nums []int, target int) int {
 		return shortest
 	}
 	return 0
+}
+
+/*
+9：乘积小于k的子数组
+题目：输入一个由正整数组成的数组和一个正整数k，请问数组中有多少个数字乘积小于k的连续子数组？例如，输入数组[10，5，2，6]，k的值为100，有8个子数组的所有数字的乘积小于100，它们分别是[10]、[5]、[2]、[6]、[10，5]、[5，2]、[2，6]和[5，2，6]。
+*/
+func TestProductThanValue(t *testing.T) {
+	nums := []int{
+		10, 5, 2, 6,
+	}
+	k := 100
+	res := ProductThanValue(nums, k)
+	fmt.Println(res)
+}
+func ProductThanValue(nums []int, k int) int {
+	var s, count int
+	var cur = 1
+
+	for e, l := 0, len(nums); e < l; e++ {
+		//e = i
+		cur *= nums[e]
+		for cur >= k && s <= e {
+			cur /= nums[s]
+			s++
+		}
+		if e >= s {
+			count += e - s + 1
+		}
+	}
+	return count
+}
+
+// ##累加数组数字求子数组之和
+/*
+10：和为k的子数组题目：
+输入一个整数数组和一个整数k，请问数组中有多少个数字之和等于k的连续子数组？例如，输入数组[1，1，1]，k的值为2，有2个连续子数组之和等于2。
+*/
+func TestSubarraySum(t *testing.T) {
+	type field struct {
+		nums []int
+		k    int
+	}
+	tests := []struct {
+		name     string
+		args     field
+		expected int
+	}{
+		{
+			name: "test-1",
+			args: field{
+				nums: []int{1, 1, 1},
+				k:    2,
+			},
+			expected: 2,
+		}, {
+			name: "test-2",
+			args: field{
+				nums: []int{1, 2, 3},
+				k:    2,
+			},
+			expected: 1,
+		},
+	}
+	for _, c := range tests {
+		t.Run(c.name, func(t *testing.T) {
+			result := SubarraySum(c.args.nums, c.args.k)
+			assert.Equal(t, c.expected, result)
+		})
+	}
+}
+func SubarraySum(nums []int, k int) int {
+	sumToCount := make(map[int]int)
+	sumToCount[0] = 1
+	var sum, count int
+	for i, l := 0, len(nums); i < l; i++ {
+		sum += nums[i]
+		if v, ok := sumToCount[sum-k]; ok {
+			count += v
+		} else {
+			count += 0
+		}
+		if _, ok := sumToCount[sum]; ok {
+			sumToCount[sum] += 1
+		} else {
+			sumToCount[sum] = 1
+		}
+	}
+	return count
+}
+
+/*
+11:0和1个数相同的子数组题目
+输入一个只包含0和1的数组，请问如何求0和1的个数相同的最长连续子数组的长度？例如，在数组[0，1，0]中有两个子数组包含相同个数的0和1，分别是[0，1]和[1，0]，它们的长度都是2，因此输出2。
+*/
+
+func TestFindMaxLength(t *testing.T) {
+	type args struct {
+		nums []int
+	}
+	cases := []struct {
+		name     string
+		arg      args
+		expected int
+	}{
+		{
+			name: "test-1",
+			arg: args{
+				nums: []int{
+					0, 1,
+				},
+			},
+			expected: 2,
+		}, {
+			name: "test-2",
+			arg: args{
+				nums: []int{
+					0, 1, 0,
+				},
+			},
+			expected: 2,
+		},
+	}
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			result := findMaxLength(c.arg.nums)
+			assert.Equal(t, c.expected, result)
+		})
+	}
+}
+
+func findMaxLength(nums []int) int {
+	var sum int
+	maxLen := 0
+	leastIndex := make(map[int]int)
+	leastIndex[0] = 0
+	for i, l := 0, len(nums); i < l; i++ {
+		if nums[i] == 0 {
+			nums[i] = -1
+		}
+		sum += nums[i]
+		if v, ok := leastIndex[sum]; ok {
+			v = min(i, v)
+			maxLen = max(maxLen, i-v+1)
+		} else {
+			leastIndex[sum] = i + 1
+		}
+	}
+	return maxLen
+}
+func min(a, b int) int {
+	if a > b {
+		return b
+	}
+	return a
+}
+func max(a, b int) int {
+	if a > b {
+		return a
+	}
+	return b
 }
